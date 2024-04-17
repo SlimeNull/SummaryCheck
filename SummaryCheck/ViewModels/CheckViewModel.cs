@@ -3,6 +3,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using SummaryCheck.Models;
@@ -14,13 +15,16 @@ namespace SummaryCheck.ViewModels
     public partial class CheckViewModel : ObservableObject
     {
         private readonly AppStrings _appStrings;
-        private readonly char[] _pathSeparators = new char[]{ '/', '\\' };
 
         public CheckViewModel(
             AppStrings appStrings)
         {
             _appStrings = appStrings;
             _progressTipText = appStrings.StringWaitingForAction;
+
+            BindingOperations.EnableCollectionSynchronization(ModifiedFiles, ModifiedFiles);
+            BindingOperations.EnableCollectionSynchronization(DeletedFiles, DeletedFiles);
+            BindingOperations.EnableCollectionSynchronization(AddedFiles, AddedFiles);
         }
 
 
@@ -53,6 +57,9 @@ namespace SummaryCheck.ViewModels
 
         [ObservableProperty]
         private string? _currentFile;
+
+        [ObservableProperty]
+        private string? _finishTipText;
 
         public ObservableCollection<string> ModifiedFiles { get; } = new();
         public ObservableCollection<string> DeletedFiles { get; } = new();
@@ -107,80 +114,94 @@ namespace SummaryCheck.ViewModels
 
             try
             {
-                await Task.Delay(1);
-                ProgressIndeterminate = true;
-                ProgressTipText = _appStrings.StringIndexing;
-
-                ModifiedFiles.Clear();
-                DeletedFiles.Clear();
-                AddedFiles.Clear();
-
-                var summaryFile = File.OpenRead(SummaryFilePath);
-                var memoryStream = new MemoryStream((int)summaryFile.Length);
-                await summaryFile.CopyToAsync(memoryStream, cancellationToken);
-                memoryStream.Seek(0, SeekOrigin.Begin);
-
-                var buffer = memoryStream.GetBuffer();
-                await BinaryUtils.XorBytesAsync(buffer, memoryStream.Length, 66);
-
-                var files = Directory.GetFiles(CheckFolderPath, "*.*", SearchOption.AllDirectories);
-                var infos = await JsonSerializer.DeserializeAsync<List<Md5Info>>(memoryStream, cancellationToken: cancellationToken);
-                var md5 = MD5.Create();
-
-                if (infos is null)
+                await Task.Run(async () =>
                 {
-                    MessageBox.Show(Application.Current.MainWindow, _appStrings.StringInvalidSummaryFile, _appStrings.StringError, MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
+                    await Task.Delay(1);
+                    ProgressIndeterminate = true;
+                    ProgressTipText = _appStrings.StringIndexing;
+                    FinishTipText = null;
 
-                var infoDictionary = new Dictionary<string, Md5Info>(infos.Count);
-                foreach (var info in infos)
-                {
-                    infoDictionary[info.Path] = info;
-                }
+                    ModifiedFiles.Clear();
+                    DeletedFiles.Clear();
+                    AddedFiles.Clear();
 
-                ProgressIndeterminate = false;
-                ProgressMinimum = 0;
-                ProgressMaximum = files.Length;
-                FinishedCount = 0;
-                TotalCount = files.Length;
+                    var summaryFile = File.OpenRead(SummaryFilePath);
+                    var memoryStream = new MemoryStream((int)summaryFile.Length);
+                    await summaryFile.CopyToAsync(memoryStream);
+                    memoryStream.Seek(0, SeekOrigin.Begin);
 
-                ProgressTipText = _appStrings.StringChecking;
-                foreach (var file in files)
-                {
-                    var relativePath = file.Replace(CheckFolderPath, null);
+                    var buffer = memoryStream.GetBuffer();
+                    await BinaryUtils.XorBytesAsync(buffer, memoryStream.Length, 66);
 
-                    if (!infoDictionary.TryGetValue(relativePath, out var info))
+                    var files = Directory.GetFiles(CheckFolderPath, "*.*", SearchOption.AllDirectories);
+                    var infos = await JsonSerializer.DeserializeAsync<List<Md5Info>>(memoryStream, cancellationToken: cancellationToken);
+                    var md5 = MD5.Create();
+
+                    if (infos is null)
                     {
-                        AddedFiles.Add(file);
+                        MessageBox.Show(Application.Current.MainWindow, _appStrings.StringInvalidSummaryFile, _appStrings.StringError, MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+
+                    var infoDictionary = new Dictionary<string, Md5Info>(infos.Count);
+                    foreach (var info in infos)
+                    {
+                        infoDictionary[info.Path] = info;
+                    }
+
+                    ProgressIndeterminate = false;
+                    ProgressMinimum = 0;
+                    ProgressMaximum = files.Length;
+                    FinishedCount = 0;
+                    TotalCount = files.Length;
+
+                    ProgressTipText = _appStrings.StringChecking;
+                    foreach (var file in files)
+                    {
+                        var relativePath = file.Replace(CheckFolderPath, null);
+
+                        if (!infoDictionary.TryGetValue(relativePath, out var info))
+                        {
+                            AddedFiles.Add(file);
+
+                            FinishedCount++;
+                            ProgressValue = FinishedCount;
+                            continue;
+                        }
+
+                        infoDictionary.Remove(relativePath);
+
+                        using var fileStream = File.OpenRead(file);
+                        var hash = md5.ComputeHash(fileStream);
+                        var hashText = StringUtils.ToHexString(hash);
+
+                        if (hashText != info.Md5)
+                        {
+                            ModifiedFiles.Add(file);
+                        }
+
 
                         FinishedCount++;
                         ProgressValue = FinishedCount;
-                        continue;
                     }
 
-                    infoDictionary.Remove(relativePath);
-
-                    using var fileStream = File.OpenRead(file);
-                    var hash = await md5.ComputeHashAsync(fileStream, cancellationToken);
-                    var hashText = Convert.ToHexString(hash);
-
-                    if (hashText != info.Md5)
+                    foreach (var remainingInfo in infoDictionary.Values)
                     {
-                        ModifiedFiles.Add(file);
+                        var abstractPath = CheckFolderPath + remainingInfo.Path;
+                        DeletedFiles.Add(abstractPath);
                     }
 
-                    FinishedCount++;
-                    ProgressValue = FinishedCount;
-                }
+                    ProgressTipText = _appStrings.StringCompleted;
 
-                foreach (var remainingInfo in infoDictionary.Values)
-                {
-                    var abstractPath = Path.Combine(CheckFolderPath, remainingInfo.Path);
-                    DeletedFiles.Add(abstractPath);
-                }
-
-                ProgressTipText = _appStrings.StringCompleted;
+                    if (ModifiedFiles.Count == 0 && DeletedFiles.Count == 0 && AddedFiles.Count == 0)
+                    {
+                        FinishTipText = _appStrings.StringFilesNoProblem;
+                    }
+                    else
+                    {
+                        FinishTipText = _appStrings.StringFilesChanged;
+                    }
+                });
             }
             catch (JsonException)
             {
@@ -201,6 +222,11 @@ namespace SummaryCheck.ViewModels
             {
                 MessageBox.Show(Application.Current.MainWindow, e.Message, _appStrings.StringError, MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
+            }
+            finally
+            {
+                ProgressTipText = _appStrings.StringWaitingForAction;
+                ProgressIndeterminate = false;
             }
         }
 

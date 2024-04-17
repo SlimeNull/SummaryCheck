@@ -12,11 +12,39 @@
       d:DataContext="{d:DesignInstance Type=local:AboutPage}">
 
     <ws:ScrollViewer VerticalScrollBarVisibility="Auto">
-        <ws:StackPanel Margin="28 12 28 28"
+        <ws:StackPanel Margin="28"
                        Spacing="14">
-            <TextBlock Text="About"
-                       FontSize="22"
-                       Margin="0 0 0 12"/>
+            <ws:StackPanel Orientation="Horizontal" Spacing="12">
+                <ws:Image Source="/Assets/Icon.png"
+                          Width="64"/>
+                <ws:StackPanel Orientation="Vertical" Spacing="4">
+                    <TextBlock Text="{Binding AppStrings.StringAppName}"
+                               FontSize="26"
+                               d:Text="校验核弹小工具"/>
+                    <TextBlock Text="{Binding AppStrings.StringAppDescription}"
+                               d:Text="一个简单的摘要校验工具"/>
+                </ws:StackPanel>
+            </ws:StackPanel>
+
+            <ws:StackPanel Orientation="Vertical" Spacing="4">
+                <TextBlock FontSize="16"
+                           d:Text="作者: 诺尔">
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="{}{0}: {1}">
+                            <Binding Path="AppStrings.StringAuthor"/>
+                            <Binding Path="AppStrings.StringAppAuthor"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+                <TextBlock FontSize="16">
+                    <Run Text="{Binding AppStrings.StringRepositoryAddress,Mode=OneWay}"
+                         d:Text="仓库地址:"/>
+                    <Hyperlink Click="Hyperlink_Click">
+                        <Run Text="{Binding AppStrings.StringAppRepositoryUrl,Mode=OneWay}"
+                             d:Text="https://github.com/SlimeNull/SummaryCheck"/>
+                    </Hyperlink>
+                </TextBlock>
+            </ws:StackPanel>
         </ws:StackPanel>
     </ws:ScrollViewer>
 </Page>
