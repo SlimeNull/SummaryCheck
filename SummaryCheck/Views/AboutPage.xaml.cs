@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using SummaryCheck.Strings;
 
 namespace SummaryCheck.Views
 {
@@ -20,9 +22,23 @@ namespace SummaryCheck.Views
     /// </summary>
     public partial class AboutPage : Page
     {
-        public AboutPage()
+        public AppStrings AppStrings { get; }
+
+        public AboutPage(AppStrings appStrings)
         {
+            DataContext = this;
+            AppStrings = appStrings;
+
             InitializeComponent();
+        }
+
+        private void Hyperlink_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo()
+            {
+                FileName = AppStrings.StringAppRepositoryUrl,
+                UseShellExecute = true,
+            });
         }
     }
 }

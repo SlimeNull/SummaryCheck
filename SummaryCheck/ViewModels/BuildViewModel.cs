@@ -56,6 +56,9 @@ namespace SummaryCheck.ViewModels
         [ObservableProperty]
         private string? _currentFile;
 
+        [ObservableProperty]
+        private string? _finishTipText;
+
         [RelayCommand]
         public void SelectCheckFolderPath()
         {
@@ -96,56 +99,61 @@ namespace SummaryCheck.ViewModels
 
             try
             {
-                var outputFilePath = saveFileDialog.FileName;
-                await Task.Delay(1);
-
-                ProgressIndeterminate = true;
-                ProgressTipText = _appStrings.StringIndexing;
-                var files = Directory.GetFiles(CheckFolderPath, "*.*", SearchOption.AllDirectories);
-                var infos = new List<Md5Info>();
-                var md5 = MD5.Create();
-
-                ProgressIndeterminate = false;
-                ProgressMinimum = 0;
-                ProgressMaximum = files.Length;
-                FinishedCount = 0;
-                TotalCount = files.Length;
-
-                ProgressTipText = _appStrings.StringBuilding;
-                foreach (var file in files)
+                await Task.Run(async () =>
                 {
-                    CurrentFile = file;
+                    var outputFilePath = saveFileDialog.FileName;
+                    await Task.Delay(1);
 
-                    using var stream = File.OpenRead(file);
-                    var relativePath = file.Replace(CheckFolderPath, null);
-                    var hash = await md5.ComputeHashAsync(stream, cancellationToken);
-                    var hashText = Convert.ToHexString(hash);
+                    FinishTipText = null;
+                    ProgressIndeterminate = true;
+                    ProgressTipText = _appStrings.StringIndexing;
+                    var files = Directory.GetFiles(CheckFolderPath, "*.*", SearchOption.AllDirectories);
+                    var infos = new List<Md5Info>();
+                    var md5 = MD5.Create();
 
-                    infos.Add(
-                        new Md5Info()
-                        {
-                            Path = relativePath,
-                            Md5 = hashText
-                        });
+                    ProgressIndeterminate = false;
+                    ProgressMinimum = 0;
+                    ProgressMaximum = files.Length;
+                    FinishedCount = 0;
+                    TotalCount = files.Length;
 
-                    FinishedCount++;
-                    ProgressValue = FinishedCount;
-                }
+                    ProgressTipText = _appStrings.StringBuilding;
+                    foreach (var file in files)
+                    {
+                        CurrentFile = file;
 
-                CurrentFile = null;
+                        using var stream = File.OpenRead(file);
+                        var relativePath = file.Replace(CheckFolderPath, null);
+                        var hash = md5.ComputeHash(stream);
+                        var hashText = StringUtils.ToHexString(hash);
 
-                ProgressTipText = _appStrings.StringSaving;
-                using var outputFile = File.Create(outputFilePath);
-                using var memoryStream = new MemoryStream();
-                await JsonSerializer.SerializeAsync(memoryStream, infos, cancellationToken: cancellationToken);
+                        infos.Add(
+                            new Md5Info()
+                            {
+                                Path = relativePath,
+                                Md5 = hashText
+                            });
 
-                var buffer = memoryStream.GetBuffer();
-                await BinaryUtils.XorBytesAsync(buffer, memoryStream.Length, 66);
+                        FinishedCount++;
+                        ProgressValue = FinishedCount;
+                    }
 
-                memoryStream.Seek(0, SeekOrigin.Begin);
-                await memoryStream.CopyToAsync(outputFile, cancellationToken);
+                    CurrentFile = null;
 
-                ProgressTipText = _appStrings.StringCompleted;
+                    ProgressTipText = _appStrings.StringSaving;
+                    using var outputFile = File.Create(outputFilePath);
+                    using var memoryStream = new MemoryStream();
+                    await JsonSerializer.SerializeAsync(memoryStream, infos, cancellationToken: cancellationToken);
+
+                    var buffer = memoryStream.GetBuffer();
+                    await BinaryUtils.XorBytesAsync(buffer, memoryStream.Length, 66);
+
+                    memoryStream.Seek(0, SeekOrigin.Begin);
+                    await memoryStream.CopyToAsync(outputFile);
+
+                    ProgressTipText = _appStrings.StringCompleted;
+                    FinishTipText = _appStrings.StringCompleted;
+                });
             }
             catch (System.IO.IOException)
             {
@@ -161,6 +169,11 @@ namespace SummaryCheck.ViewModels
             {
                 MessageBox.Show(Application.Current.MainWindow, e.Message, _appStrings.StringError, MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
+            }
+            finally
+            {
+                ProgressTipText = _appStrings.StringWaitingForAction;
+                ProgressIndeterminate = false;
             }
         }
 

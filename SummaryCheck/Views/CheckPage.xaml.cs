@@ -34,5 +34,36 @@ namespace SummaryCheck.Views
 
         public AppStrings AppStrings { get; }
         public CheckViewModel ViewModel { get; }
+
+
+        private void TextBox_Drop(object sender, DragEventArgs e)
+        {
+            if (sender is not TextBox textBox)
+                return;
+
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                if (files.Length > 0)
+                {
+                    textBox.Text = files[0];
+                }
+            }
+            else if (e.Data.GetDataPresent(DataFormats.StringFormat))
+            {
+                var str = e.Data.GetData(DataFormats.StringFormat).ToString();
+                textBox.Text = str;
+            }
+        }
+
+        private void TextBox_DragEnterOrOver(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop) ||
+                e.Data.GetDataPresent(DataFormats.StringFormat))
+            {
+                e.Effects = DragDropEffects.Copy;
+                e.Handled = true;
+            }
+        }
     }
 }

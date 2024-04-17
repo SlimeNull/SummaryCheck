@@ -18,9 +18,19 @@
             <ws:CollectionIsNotNullOrEmptyConverter/>
             <ws:BooleanToVisibilityConverter ValueWhenFalse="Collapsed"/>
         </ws:ValueConverterGroup>
+        <ws:ValueConverterGroup x:Key="StringNotEmptyToVisibilityConverter">
+            <ws:StringIsNotNullOrEmptyConverter/>
+            <ws:BooleanToVisibilityConverter ValueWhenFalse="Collapsed"/>
+        </ws:ValueConverterGroup>
+        <ws:ValueConverterGroup x:Key="NumberGreatorThanZeroToVisibilityConverter">
+            <ws:NumberCompareConverter Comparison="GreatorThan"
+                                       TargetValue="0"/>
+            <ws:BooleanToVisibilityConverter/>
+        </ws:ValueConverterGroup>
     </Page.Resources>
 
-    <ws:ScrollViewer VerticalScrollBarVisibility="Auto">
+    <ws:ScrollViewer VerticalScrollBarVisibility="Auto"
+                     ScrollWithWheelDelta="True">
         <ws:StackPanel Margin="28 12 28 28"
                        Spacing="14">
             <TextBlock Text="{Binding AppStrings.StringCheck}"
@@ -31,37 +41,67 @@
             <ws:StackPanel Spacing="2">
                 <TextBlock Text="{Binding AppStrings.StringCheckFolderPath}"
                            d:Text="Check folder path"/>
-                <ws:FlexPanel MainSpacing="8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
                     <ws:TextBox Padding="5 5"
                                 CornerRadius="2"
                                 Text="{Binding ViewModel.CheckFolderPath}"
                                 Placeholder="{Binding AppStrings.StringCheckFolderPath}"
-                                ws:FlexPanel.Grow="1"/>
-                    <ws:Button Padding="5 0"
+                                Margin="0 0 8 0"
+                                MinHeight="30"
+                                VerticalContentAlignment="Center"
+                                TextWrapping="Wrap"
+                                AllowDrop="True"
+                                PreviewDragEnter="TextBox_DragEnterOrOver"
+                                PreviewDragOver="TextBox_DragEnterOrOver"
+                                PreviewDrop="TextBox_Drop"/>
+                    <ws:Button Grid.Column="1"
+                               Padding="5 0"
                                MinWidth="50"
+                               Height="30"
+                               VerticalAlignment="Top"
                                Content="{Binding AppStrings.StringSelect}"
                                Command="{Binding ViewModel.SelectCheckFolderPathCommand}"
                                d:Content="Select"
                                CornerRadius="2"/>
-                </ws:FlexPanel>
+                </Grid>
             </ws:StackPanel>
 
             <ws:StackPanel Spacing="2">
                 <TextBlock Text="{Binding AppStrings.StringSummaryFilePath}"
                            d:Text="Summary file path"/>
-                <ws:FlexPanel MainSpacing="8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
                     <ws:TextBox Padding="5 5"
                                 CornerRadius="2"
                                 Text="{Binding ViewModel.SummaryFilePath}"
                                 Placeholder="{Binding AppStrings.StringSummaryFilePath}"
-                                ws:FlexPanel.Grow="1"/>
-                    <ws:Button Padding="5 0"
+                                Margin="0 0 8 0"
+                                MinHeight="30"
+                                VerticalContentAlignment="Center"
+                                TextWrapping="Wrap"
+                                AllowDrop="True"
+                                PreviewDragEnter="TextBox_DragEnterOrOver"
+                                PreviewDragOver="TextBox_DragEnterOrOver"
+                                PreviewDrop="TextBox_Drop"/>
+                    <ws:Button Grid.Column="1"
+                               Padding="5 0"
                                MinWidth="50"
+                               Height="30"
+                               VerticalAlignment="Top"
                                Content="{Binding AppStrings.StringSelect}"
                                Command="{Binding ViewModel.SelectSummaryFilePathCommand}"
                                d:Content="Select"
                                CornerRadius="2"/>
-                </ws:FlexPanel>
+                </Grid>
             </ws:StackPanel>
 
             <ws:StackPanel Orientation="Horizontal"
@@ -106,22 +146,26 @@
 
             </ws:StackPanel>
 
+            <TextBlock Text="{Binding ViewModel.FinishTipText}"
+                       Visibility="{Binding ViewModel.FinishTipText,Mode=OneWay,Converter={StaticResource StringNotEmptyToVisibilityConverter}}"
+                       FontSize="18"/>
+
             <GroupBox Header="{Binding AppStrings.StringModifiedFiles}"
-                      Visibility="{Binding ViewModel.ModifiedFiles,Mode=OneWay,Converter={StaticResource CollectionNotEmptyToVisibilityConverter}}"
+                      Visibility="{Binding ViewModel.ModifiedFiles.Count,Mode=OneWay,Converter={StaticResource NumberGreatorThanZeroToVisibilityConverter}}"
                       d:Header="Modified files"
                       Padding="8">
                 <ItemsControl ItemsSource="{Binding ViewModel.ModifiedFiles}"/>
             </GroupBox>
 
             <GroupBox Header="{Binding AppStrings.StringDeletedFiles}"
-                      Visibility="{Binding ViewModel.DeletedFiles,Mode=OneWay,Converter={StaticResource CollectionNotEmptyToVisibilityConverter}}"
+                      Visibility="{Binding ViewModel.DeletedFiles.Count,Mode=OneWay,Converter={StaticResource NumberGreatorThanZeroToVisibilityConverter}}"
                       d:Header="Modified files"
                       Padding="8">
                 <ItemsControl ItemsSource="{Binding ViewModel.DeletedFiles}"/>
             </GroupBox>
 
             <GroupBox Header="{Binding AppStrings.StringAddedFiles}"
-                      Visibility="{Binding ViewModel.AddedFiles,Mode=OneWay,Converter={StaticResource CollectionNotEmptyToVisibilityConverter}}"
+                      Visibility="{Binding ViewModel.AddedFiles.Count,Mode=OneWay,Converter={StaticResource NumberGreatorThanZeroToVisibilityConverter}}"
                       d:Header="Modified files"
                       Padding="8">
                 <ItemsControl ItemsSource="{Binding ViewModel.AddedFiles}"/>

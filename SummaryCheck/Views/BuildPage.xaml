@@ -14,9 +14,14 @@
     <Page.Resources>
         <ws:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"
                                          ValueWhenFalse="Collapsed"/>
+        <ws:ValueConverterGroup x:Key="StringNotEmptyToVisibilityConverter">
+            <ws:StringIsNotNullOrEmptyConverter/>
+            <ws:BooleanToVisibilityConverter ValueWhenFalse="Collapsed"/>
+        </ws:ValueConverterGroup>
     </Page.Resources>
 
-    <ws:ScrollViewer VerticalScrollBarVisibility="Auto">
+    <ws:ScrollViewer VerticalScrollBarVisibility="Auto"
+                     ScrollWithWheelDelta="True">
         <ws:StackPanel Margin="28 12 28 28"
                        Spacing="14">
             <TextBlock Text="{Binding AppStrings.StringBuild}"
@@ -27,19 +32,34 @@
             <ws:StackPanel Spacing="2">
                 <TextBlock Text="{Binding AppStrings.StringCheckFolderPath}"
                            d:Text="Check folder path"/>
-                <ws:FlexPanel MainSpacing="8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
                     <ws:TextBox Padding="5 5"
                                 CornerRadius="2"
                                 Text="{Binding ViewModel.CheckFolderPath}"
                                 Placeholder="{Binding AppStrings.StringCheckFolderPath}"
-                                ws:FlexPanel.Grow="1"/>
-                    <ws:Button Padding="5 0"
+                                Margin="0 0 8 0"
+                                MinHeight="30"
+                                VerticalContentAlignment="Center"
+                                TextWrapping="Wrap"
+                                AllowDrop="True"
+                                PreviewDragEnter="TextBox_DragEnterOrOver"
+                                PreviewDragOver="TextBox_DragEnterOrOver"
+                                PreviewDrop="TextBox_Drop"/>
+                    <ws:Button Grid.Column="1"
+                               Padding="5 0"
                                MinWidth="50"
+                               Height="30"
+                               VerticalAlignment="Top"
                                Content="{Binding AppStrings.StringSelect}"
                                Command="{Binding ViewModel.SelectCheckFolderPathCommand}"
                                d:Content="Select"
                                CornerRadius="2"/>
-                </ws:FlexPanel>
+                </Grid>
             </ws:StackPanel>
 
             <ws:StackPanel Orientation="Horizontal"
@@ -83,6 +103,10 @@
                            TextWrapping="Wrap"/>
 
             </ws:StackPanel>
+
+            <TextBlock Text="{Binding ViewModel.FinishTipText}"
+                       Visibility="{Binding ViewModel.FinishTipText,Mode=OneWay,Converter={StaticResource StringNotEmptyToVisibilityConverter}}"
+                       FontSize="18"/>
         </ws:StackPanel>
     </ws:ScrollViewer>
 </Page>
