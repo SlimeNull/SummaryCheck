@@ -1,0 +1,88 @@
+﻿<Page x:Class="SummaryCheck.Views.BuildPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:local="clr-namespace:SummaryCheck.Views"
+      xmlns:ws="https://github.com/OrgEleCho/EleCho.WpfSuite"
+      mc:Ignorable="d"
+      Title="BuildPage"
+      d:Background="White"
+      d:DesignHeight="450" d:DesignWidth="800"
+      d:DataContext="{d:DesignInstance Type=local:BuildPage}">
+
+    <Page.Resources>
+        <ws:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"
+                                         ValueWhenFalse="Collapsed"/>
+    </Page.Resources>
+
+    <ws:ScrollViewer VerticalScrollBarVisibility="Auto">
+        <ws:StackPanel Margin="28 12 28 28"
+                       Spacing="14">
+            <TextBlock Text="{Binding AppStrings.StringBuild}"
+                       d:Text="Build"
+                       FontSize="22"
+                       Margin="0 0 0 12"/>
+
+            <ws:StackPanel Spacing="2">
+                <TextBlock Text="{Binding AppStrings.StringCheckFolderPath}"
+                           d:Text="Check folder path"/>
+                <ws:FlexPanel MainSpacing="8">
+                    <ws:TextBox Padding="5 5"
+                                CornerRadius="2"
+                                Text="{Binding ViewModel.CheckFolderPath}"
+                                Placeholder="{Binding AppStrings.StringCheckFolderPath}"
+                                ws:FlexPanel.Grow="1"/>
+                    <ws:Button Padding="5 0"
+                               MinWidth="50"
+                               Content="{Binding AppStrings.StringSelect}"
+                               Command="{Binding ViewModel.SelectCheckFolderPathCommand}"
+                               d:Content="Select"
+                               CornerRadius="2"/>
+                </ws:FlexPanel>
+            </ws:StackPanel>
+
+            <ws:StackPanel Orientation="Horizontal"
+                           Spacing="8">
+                <ws:Button Content="{Binding AppStrings.StringBuild}"
+                           Command="{Binding ViewModel.BuildCommand}"
+                           d:Content="Build"
+                           HorizontalAlignment="Left"
+                           Padding="25 5"
+                           CornerRadius="2"/>
+                <ws:Button Content="{Binding AppStrings.StringCancel}"
+                           Command="{Binding ViewModel.CancelBuildingCommand}"
+                           Visibility="{Binding ViewModel.BuildCommand.IsRunning,Mode=OneWay,Converter={StaticResource BooleanToVisibilityConverter}}"
+                           d:Content="Cancel"
+                           HorizontalAlignment="Left"
+                           Padding="25 5"
+                           CornerRadius="2"/>
+            </ws:StackPanel>
+
+            <ws:StackPanel Margin="0 48 0 0" Spacing="4">
+                <ws:FlexPanel MainAlignment="SpaceBetween">
+                    <TextBlock Text="{Binding ViewModel.ProgressTipText}"
+                               d:Text="Waiting for action"/>
+                    <TextBlock>
+                        <Run Text="{Binding ViewModel.FinishedCount}"
+                             d:Text="20"/>
+                        <Run Text="/"/>
+                        <Run Text="{Binding ViewModel.TotalCount}"
+                             d:Text="264"/>
+                    </TextBlock>
+                </ws:FlexPanel>
+                <ProgressBar Height="8"
+                             Background="Transparent"
+                             IsIndeterminate="{Binding ViewModel.ProgressIndeterminate}"
+                             Minimum="{Binding ViewModel.ProgressMinimum}"
+                             Maximum="{Binding ViewModel.ProgressMaximum}"
+                             Value="{Binding ViewModel.ProgressValue}"/>
+
+                <TextBlock Text="{Binding ViewModel.CurrentFile}"
+                           d:Text="Assets/QWQ"
+                           TextWrapping="Wrap"/>
+
+            </ws:StackPanel>
+        </ws:StackPanel>
+    </ws:ScrollViewer>
+</Page>
