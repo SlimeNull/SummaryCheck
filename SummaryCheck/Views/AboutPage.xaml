@@ -36,6 +36,15 @@
                         </MultiBinding>
                     </TextBlock.Text>
                 </TextBlock>
+                <TextBlock FontSize="14"
+                           d:Text="版本: 114.514">
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="{}{0}: {1}">
+                            <Binding Path="AppStrings.StringVersion"/>
+                            <Binding Path="AppVersion"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
                 <TextBlock FontSize="14">
                     <Run Text="{Binding AppStrings.StringRepositoryAddress,Mode=OneWay}"
                          d:Text="仓库地址:"/>

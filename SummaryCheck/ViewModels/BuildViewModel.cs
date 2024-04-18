@@ -59,17 +59,23 @@ namespace SummaryCheck.ViewModels
         [ObservableProperty]
         private string? _finishTipText;
 
+        private Ookii.Dialogs.Wpf.VistaFolderBrowserDialog selectCheckFolderDialog = new()
+        {
+            Multiselect = false,
+        };
+
+        private Ookii.Dialogs.Wpf.VistaSaveFileDialog saveFileDialog = new()
+        {
+            CheckPathExists = true,
+            Filter = "Any|*.*",
+        };
+
         [RelayCommand]
         public void SelectCheckFolderPath()
         {
-            Ookii.Dialogs.Wpf.VistaFolderBrowserDialog dialog = new()
+            if (selectCheckFolderDialog.ShowDialog() ?? false)
             {
-                Multiselect = false,
-            };
-
-            if (dialog.ShowDialog() ?? false)
-            {
-                CheckFolderPath = dialog.SelectedPath;
+                CheckFolderPath = selectCheckFolderDialog.SelectedPath;
             }
         }
 
@@ -84,12 +90,7 @@ namespace SummaryCheck.ViewModels
 
             var now = DateTime.Now;
             var folderName = System.IO.Path.GetFileName(CheckFolderPath);
-            Ookii.Dialogs.Wpf.VistaSaveFileDialog saveFileDialog = new()
-            {
-                CheckPathExists = true,
-                FileName = $"Y{now.Year}M{now.Month}D{now.Day}-H{now.Hour}M{now.Minute}S{now.Second}-{folderName}.bytes",
-                Filter = "Any|*.*",
-            };
+            saveFileDialog.FileName = $"Y{now.Year}M{now.Month}D{now.Day}-H{now.Hour}M{now.Minute}S{now.Second}-{folderName}.bytes";
 
             var dialogResult = saveFileDialog.ShowDialog() ?? false;
             if (!dialogResult)
@@ -120,6 +121,8 @@ namespace SummaryCheck.ViewModels
                     ProgressTipText = _appStrings.StringBuilding;
                     foreach (var file in files)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
+
                         CurrentFile = file;
 
                         using var stream = File.OpenRead(file);

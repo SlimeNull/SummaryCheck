@@ -61,6 +61,17 @@ namespace SummaryCheck.ViewModels
         [ObservableProperty]
         private string? _finishTipText;
 
+        private Ookii.Dialogs.Wpf.VistaFolderBrowserDialog selectCheckFolderDialog = new()
+        {
+            Multiselect = false,
+        };
+
+        private Ookii.Dialogs.Wpf.VistaOpenFileDialog selectSummaryFileDialog = new()
+        {
+            CheckFileExists = true,
+            Multiselect = false,
+        };
+
         public ObservableCollection<string> ModifiedFiles { get; } = new();
         public ObservableCollection<string> DeletedFiles { get; } = new();
         public ObservableCollection<string> AddedFiles { get; } = new();
@@ -69,14 +80,9 @@ namespace SummaryCheck.ViewModels
         [RelayCommand]
         public void SelectCheckFolderPath()
         {
-            Ookii.Dialogs.Wpf.VistaFolderBrowserDialog dialog = new()
+            if (selectCheckFolderDialog.ShowDialog() ?? false)
             {
-                Multiselect = false,
-            };
-
-            if (dialog.ShowDialog() ?? false)
-            {
-                CheckFolderPath = dialog.SelectedPath;
+                CheckFolderPath = selectCheckFolderDialog.SelectedPath;
             }
         }
 
@@ -84,15 +90,9 @@ namespace SummaryCheck.ViewModels
         [RelayCommand]
         public void SelectSummaryFilePath()
         {
-            Ookii.Dialogs.Wpf.VistaOpenFileDialog dialog = new()
+            if (selectSummaryFileDialog.ShowDialog() ?? false)
             {
-                CheckFileExists = true,
-                Multiselect = false,
-            };
-
-            if (dialog.ShowDialog() ?? false)
-            {
-                SummaryFilePath = dialog.FileName;
+                SummaryFilePath = selectSummaryFileDialog.FileName;
             }
         }
 
@@ -158,6 +158,8 @@ namespace SummaryCheck.ViewModels
                     ProgressTipText = _appStrings.StringChecking;
                     foreach (var file in files)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
+
                         var relativePath = file.Replace(CheckFolderPath, null);
 
                         if (!infoDictionary.TryGetValue(relativePath, out var info))

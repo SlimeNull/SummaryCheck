@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -26,11 +27,15 @@ namespace SummaryCheck.Views
 
         public AboutPage(AppStrings appStrings)
         {
-            DataContext = this;
             AppStrings = appStrings;
+            AppVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString();
+            DataContext = this;
 
             InitializeComponent();
+
         }
+
+        public string? AppVersion { get; }
 
         private void Hyperlink_Click(object sender, RoutedEventArgs e)
         {
