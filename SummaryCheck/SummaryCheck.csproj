@@ -26,6 +26,13 @@
     <PackageReference Include="System.Text.Json" Version="8.0.3" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)'=='net472'">
+    <PackageReference Include="Costura.Fody" Version="5.7.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\SummaryCheck.Strings\SummaryCheck.Strings.csproj" />
   </ItemGroup>

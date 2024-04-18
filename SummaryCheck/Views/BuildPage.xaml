@@ -40,7 +40,7 @@
 
                     <ws:TextBox Padding="5 5"
                                 CornerRadius="2"
-                                Text="{Binding ViewModel.CheckFolderPath}"
+                                Text="{Binding ViewModel.CheckFolderPath,UpdateSourceTrigger=PropertyChanged}"
                                 Placeholder="{Binding AppStrings.StringInputOrDragFolderInfoTextBoxToAutoFilePath}"
                                 Margin="0 0 8 0"
                                 MinHeight="30"
