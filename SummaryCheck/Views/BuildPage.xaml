@@ -41,7 +41,7 @@
                     <ws:TextBox Padding="5 5"
                                 CornerRadius="2"
                                 Text="{Binding ViewModel.CheckFolderPath}"
-                                Placeholder="{Binding AppStrings.StringCheckFolderPath}"
+                                Placeholder="{Binding AppStrings.StringInputOrDragFolderInfoTextBoxToAutoFilePath}"
                                 Margin="0 0 8 0"
                                 MinHeight="30"
                                 VerticalContentAlignment="Center"

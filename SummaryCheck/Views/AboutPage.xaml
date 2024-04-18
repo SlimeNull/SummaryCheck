@@ -27,7 +27,7 @@
             </ws:StackPanel>
 
             <ws:StackPanel Orientation="Vertical" Spacing="4">
-                <TextBlock FontSize="16"
+                <TextBlock FontSize="14"
                            d:Text="作者: 诺尔">
                     <TextBlock.Text>
                         <MultiBinding StringFormat="{}{0}: {1}">
@@ -36,7 +36,7 @@
                         </MultiBinding>
                     </TextBlock.Text>
                 </TextBlock>
-                <TextBlock FontSize="16">
+                <TextBlock FontSize="14">
                     <Run Text="{Binding AppStrings.StringRepositoryAddress,Mode=OneWay}"
                          d:Text="仓库地址:"/>
                     <Hyperlink Click="Hyperlink_Click">
