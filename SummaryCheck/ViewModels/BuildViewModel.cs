@@ -123,6 +123,9 @@ namespace SummaryCheck.ViewModels
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
+                        if (file.EndsWith(".meta"))
+                            continue;
+
                         CurrentFile = file;
 
                         using var stream = File.OpenRead(file);

@@ -160,6 +160,9 @@ namespace SummaryCheck.ViewModels
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
+                        if (file.EndsWith(".meta"))
+                            continue;
+
                         var relativePath = file.Replace(CheckFolderPath, null);
 
                         if (!infoDictionary.TryGetValue(relativePath, out var info))
